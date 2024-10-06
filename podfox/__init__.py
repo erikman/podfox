@@ -21,6 +21,7 @@ Options:
 from colorama import Fore, Back, Style
 from docopt import docopt
 from os.path import expanduser
+from urllib.parse import urlparse
 from sys import exit
 import colorama
 import datetime
@@ -40,7 +41,7 @@ import re
 # how-to-parse-a-rfc-2822-date-time-into-a-python-datetime
 
 from email.utils import parsedate
-from time import mktime
+from time import mktime, localtime, strftime
 
 CONFIGURATION_DEFAULTS = {
     "podcast-directory": "~/Podcasts",
@@ -224,26 +225,28 @@ def download_multiple(feed, maxnum):
         if maxnum == 0:
             break
         if not episode['downloaded'] and not episode_too_old(episode, CONFIGURATION['maxage-days']):
-            episode['filename'] = download_single(feed['shortname'], episode['url'])
+            title = episode['title']
+            for c in '<>\"|*%?\\/':
+                title = title.replace(c, "")
+            title = title.replace(" ", "_").replace("’", "'").replace("—", "-").replace(":", ".")
+            extension = os.path.splitext(urlparse(episode['url'])[2])[1]
+            filename = "{}_{}{}".format(strftime('%Y-%m-%d', localtime(episode['published'])),
+                                        title, extension)
+            download_single(feed['shortname'], episode['url'], filename)
+            episode['filename'] = filename
             episode['downloaded'] = True
             maxnum -= 1
     overwrite_config(feed)
 
-def download_single(folder, url):
+def download_single(folder, url, filename):
     print(url)
     base = CONFIGURATION['podcast-directory']
     r = requests.get(url.strip(), stream=True)
-    try:
-        filename = re.findall('filename="([^"]+)', r.headers['content-disposition'])[0]
-    except:
-        filename = get_filename_from_url(url)
     print_green("{:s} downloading".format(filename))
     with open(os.path.join(base, folder, filename), 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024**2):
             f.write(chunk)
     print("done.")
-
-    return filename
 
 def available_feeds():
     '''
