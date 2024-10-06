@@ -14,11 +14,11 @@ setup(name='podfox',
     zip_safe=False,
     entry_points={
         'console_scripts' : [
-            'podfox = podfox.__init__:main'    
+            'podfox = podfox.__init__:main'
         ]
     },
     install_requires=[
-        'colorama==0.3.7',
+        'colorama==0.4.6',
         'docopt==0.6.2',
         'feedparser==6.0.8',
         'requests==2.20.0',
