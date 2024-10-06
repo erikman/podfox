@@ -21,6 +21,6 @@ setup(name='podfox',
         'colorama==0.4.6',
         'docopt==0.6.2',
         'feedparser==6.0.11',
-        'requests==2.20.0',
+        'requests==2.32.3',
         ],
     )
